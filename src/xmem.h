@@ -10,6 +10,6 @@ typedef struct {
 	void  (*free)(void* ptr);
 } xmem_p;
 
-extern xmem_p xmem;
+extern const xmem_p xmem;
 
 #endif

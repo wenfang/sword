@@ -38,6 +38,6 @@ typedef struct {
     void        (*freeList)(xstring_t* s, int count);
 } xstring_p;
 
-extern xstring_p xstring;
+extern const xstring_p xstring;
 
 #endif

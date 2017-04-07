@@ -20,6 +20,8 @@ static void _taskMain(void *arg) {
     _schedule();
 }
 
+static void _ready(xtask_t* task);
+
 static xtask_t* _create(void (*fun)(void*), void* arg, size_t size) {
     // 栈不能小于1K
     if (size < 1024) {
@@ -42,6 +44,8 @@ static xtask_t* _create(void (*fun)(void*), void* arg, size_t size) {
     task->_context.uc_stack.ss_sp = task->_stk + 8;
     task->_context.uc_stack.ss_size = task->_size - 64;
     makecontext(&task->_context, (void (*)(void))_taskMain, 1, task);
+
+    _ready(task);
     return task;
 }
 

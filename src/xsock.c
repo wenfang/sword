@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <errno.h>
-#include <poll.h>
+#include <netdb.h>
 
 #define DEFAULT_BACKLOG	10240
 
@@ -121,6 +121,39 @@ static int _accept(int sfd) {
     return cfd;
 }
 
+static int _connect(int fd, const char* addr, const char* port) {
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    // 获取地址信息放入servinfo
+    struct addrinfo *servinfo;
+    if (getaddrinfo(addr, port, &hints, &servinfo)) {
+        XLOG_ERROR("getaddrinfo error");
+        return -1;
+    }
+    // 使用第一个地址
+    if (!servinfo) {
+        XLOG_ERROR("servinfo is null");
+        return -1;
+    }
+    // 连接目标地址
+    int res;
+    for (;;) {
+        res = connect(fd, servinfo->ai_addr, servinfo->ai_addrlen);
+        if (res < 0) {
+            if (errno == EINPROGRESS) {
+                xepoll.setRead(fd, xtask.current());
+                xtask.schedule();
+                continue;
+            }
+        }
+        break;
+    }
+    freeaddrinfo(servinfo);
+    return res;
+}
+
 static int _read(int fd, void* buf, size_t count) {
     int res;
     for (;;) {
@@ -173,6 +206,7 @@ xsock_p xsock = {
     _udpServer,
     _tcpSocket,
     _udpSocket,
+    _connect,
     _accept,
     _read,
     _write,

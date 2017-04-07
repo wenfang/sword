@@ -306,7 +306,7 @@ static void _freeList(xstring_t* s, int count) {
     xmem.free(s);
 }
 
-xstring_p xstring = {
+const xstring_p xstring = {
     _newlen,
     _new,
     _len,

@@ -21,7 +21,7 @@ static void _free(void* ptr) {
     free(ptr);
 }
 
-xmem_p xmem = {
+const xmem_p xmem = {
     _malloc,
     _calloc,
     _realloc,

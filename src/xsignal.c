@@ -15,8 +15,15 @@ static int          _queueLen;
 static xsignal_t    _state[MAX_SIGNAL];
 static sigset_t     _blocked;
 
+static sighandler_t _signal(int signo, sighandler_t fun) {
+    struct sigaction act, oact;
+    
+    act.sa_handler = fun;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags = SA_RESTART;
+}
 
-static void _common_handler(int sig) {
+static void _handler(int sig) {
     // not handler this signal, ignore
     if (sig < 0 || sig > MAX_SIGNAL || !state[sig].fun) {
         signal(sig, SIG_IGN);
@@ -28,7 +35,7 @@ static void _common_handler(int sig) {
     }
     // add signal cnt
     state[sig].cnt++;
-    signal(sig, _common_handler);
+    signal(sig, _handler);
 }
 
 
@@ -42,19 +49,20 @@ static void _init(void) {
 static void _register(int sig, void(*fun)(int)) {
     if (sig < 0 || sig > MAX_SIGNAL) return;
     _state[sig].cnt = 0;
-    if (fun == NULL) fun = SIG_IGN;
+    if (fun == NULL) {
+        fun = SIG_IGN;
+    }
     // set signal handler
     if (fun != SIG_IGN && fun != SIG_DFL) {
         state[sig].fun = fun;
-        signal(sig, _common_handler);
+        signal(sig, _handler);
     } else {
         state[sig].fun = NULL;
         signal(sig, fun);
     }
 }
 
-static void
-_process(void) {
+static void _process(void) {
     if (queue_len == 0) return;
 
     sigset_t old;
@@ -72,7 +80,7 @@ _process(void) {
     sigprocmask(SIG_SETMASK, &old, NULL);
 }
 
-xsignal_p xsignal = {
+const xsignal_p xsignal = {
     _init,
     _register,
     _process,

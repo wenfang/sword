@@ -32,29 +32,26 @@ out:
 }
 
 void foo(void *arg) {
-    int sfd = *((int*)arg);
+    int sfd = xsock.tcpServer("0.0.0.0", 7879);
+    if (sfd < 0) {
+        XLOG_ERROR("create tcp server error");
+        return;
+    }
+
     for (;;) {
         int cfd = xsock.accept(sfd);
         if (cfd < 0) {
             XLOG_ERROR("xsock accept error");
             continue;
         }
-        xtask_t* clientTask = xtask.create(clientMain, &cfd, 4096);
-        xtask.ready(clientTask);
+        xtask.create(clientMain, &cfd, 4096);
     }
     xsock.close(sfd);
 }
 
 int main(void) {
-    int sfd = xsock.tcpServer("0.0.0.0", 7879);
-    if (sfd < 0) {
-        XLOG_ERROR("create tcp server error");
-        return 1;
-    }
-
     xepoll.init(10240);
-    xtask_t* task1 = xtask.create(foo, &sfd, 8192);
-    xtask.ready(task1);
+    xtask.create(foo, NULL, 1024);
 
     for (;;) {
         xepoll.process(100);

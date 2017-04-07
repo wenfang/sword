@@ -11,6 +11,7 @@ typedef struct {
     int     (*udpServer)(const char* addr, int port);
     int     (*tcpSocket)(void);
     int     (*udpSocket)(void);
+    int     (*connect)(int fd, const char* addr, const char* port);
     int     (*accept)(int sfd);
     int     (*read)(int fd, void* buf, size_t count);
     int     (*write)(int fd, const void* buf, size_t count);

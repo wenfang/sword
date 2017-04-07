@@ -8,6 +8,6 @@ typedef struct {
     void    (*process)(void);
 } xsignal_p;
 
-extern xsignal_p xsignal;
+extern const xsignal_p xsignal;
 
 #endif
